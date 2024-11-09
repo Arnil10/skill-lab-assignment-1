@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "fastpriorityqueue": "^0.7.5",
+    "fs": "^0.0.1-security",
+    "priority-queue": "^0.2.1"
+  }
+}

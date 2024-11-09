@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Violation Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .violation-list {
+            margin-top: 20px;
+            border-top: 2px solid #ccc;
+            padding-top: 20px;
+        }
+        .violation-item {
+            background-color: #f8f9fa;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Traffic Violation Management</h1>
+        
+        <div>
+            <h3>Add Violation</h3>
+            <div class="form-group">
+                <label for="type">Violation Type</label>
+                <input type="text" id="type" placeholder="Enter violation type (e.g., Accident, Parking)">
+            </div>
+            <div class="form-group">
+                <label for="severity">Severity</label>
+                <input type="number" id="severity" placeholder="Enter severity (1-10)">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <input type="text" id="description" placeholder="Enter description">
+            </div>
+            <button onclick="addViolation()">Add Violation</button>
+        </div>
+
+        <div>
+            <h3>Process Violation</h3>
+            <button onclick="processViolation()">Process Next Violation</button>
+        </div>
+
+        <div>
+            <h3>Undo Last Violation</h3>
+            <button onclick="undoViolation()">Undo Last Violation</button>
+        </div>
+
+        <div class="violation-list">
+            <h3>Priority Queue (Violations)</h3>
+            <ul id="violation-list">
+                <!-- Violations will be dynamically loaded here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = 'http://localhost:3000/api/violations';  // Adjust the URL based on your backend API
+
+        // Function to add a violation
+        function addViolation() {
+            const type = document.getElementById('type').value;
+            const severity = document.getElementById('severity').value;
+            const description = document.getElementById('description').value;
+
+            fetch(`${apiUrl}/addViolation`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ type, severity: parseInt(severity), description })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Violation Added');
+                loadViolations();  // Reload the violations list
+            })
+            .catch(error => console.error('Error adding violation:', error));
+        }
+
+        // Function to process the next violation
+        function processViolation() {
+            fetch(`${apiUrl}/processViolation`, {
+                method: 'GET',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.violation) {
+                    alert('Processed Violation: ' + JSON.stringify(data.violation));
+                    loadViolations();  // Reload the violations list
+                } else {
+                    alert('No violations to process');
+                }
+            })
+            .catch(error => console.error('Error processing violation:', error));
+        }
+
+        // Function to undo the last violation
+        function undoViolation() {
+            fetch(`${apiUrl}/undoViolation`, {
+                method: 'GET',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.violation) {
+                    alert('Undid Violation: ' + JSON.stringify(data.violation));
+                    loadViolations();  // Reload the violations list
+                } else {
+                    alert('No violations to undo');
+                }
+            })
+            .catch(error => console.error('Error undoing violation:', error));
+        }
+
+        // Function to load and display the violations in the queue
+        function loadViolations() {
+            fetch(`${apiUrl}/getViolations`, {
+                method: 'GET',
+            })
+            .then(response => response.json())
+            .then(data => {
+                const violationList = document.getElementById('violation-list');
+                violationList.innerHTML = '';  // Clear the current list
+
+                data.violations.forEach(violation => {
+                    const violationItem = document.createElement('li');
+                    violationItem.classList.add('violation-item');
+                    violationItem.textContent = `Type: ${violation.type}, Severity: ${violation.severity}, Description: ${violation.description}`;
+                    violationList.appendChild(violationItem);
+                });
+            })
+            .catch(error => console.error('Error loading violations:', error));
+        }
+
+        // Load the violations when the page loads
+        window.onload = loadViolations;
+    </script>
+
+</body>
+</html>
